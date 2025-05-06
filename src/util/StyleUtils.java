@@ -84,17 +84,8 @@ public class StyleUtils {
         // 2. 常见组件直接创建组件对象过程的封装
         // ========================================
 
-            // 1）创建统一风格按钮
-            public static JButton createStyledButton(String text) {
-                JButton button = new JButton(text);
-                button.setFont(DEFAULT_FONT);              // 设置默认字体
-                button.setBackground(TITLE_COLOR);         // 设置按钮背景色
-                button.setForeground(Color.BLACK);         // 设置按钮文字色
-                button.setFocusPainted(false);             // 取消焦点边框
-                return button;
-            }
 
-            // 2）创建标题标签
+            // 1）创建标题标签
             public static JLabel createTitleLabel(String text) {
                 // SwingConstants.CENTER 是一个常量，代表水平居中
                 JLabel label = new JLabel(text, SwingConstants.CENTER); // 居中构造标签
@@ -107,7 +98,7 @@ public class StyleUtils {
                 return label;
             }
 
-            // 3）创建任务说明标签
+            // 2）创建任务说明标签
             public static JLabel createInstructionLabel(String text) {
                 JLabel label = new JLabel(text);
                 label.setFont(DEFAULT_FONT);       // 使用常规字体
@@ -120,30 +111,92 @@ public class StyleUtils {
         // 3. 一个特殊的“继承组件类 + 匿名内部类”的封装
         // ========================================
 
-            public static JPanel createBubblePanel() {
-                        JPanel panel = new JPanel() {
-                            @Override
-                            protected void paintComponent(Graphics g) {
-                                Graphics2D g2 = (Graphics2D) g.create();
-                                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        // 1）创建统一风格按钮
+        public static JButton createStyledButton(String text) {
+            JButton button = new JButton(text) {
+                private static final int ARC = 20;
+                private static final int SHADOW_SIZE = 3;
 
-                                int arc = 30;
-                                int offset = 2; // 阴影向右下偏移距离
+                @Override
+                protected void paintComponent(Graphics g) {
+                    int w = getWidth(), h = getHeight();
+                    boolean pressed = getModel().isArmed() || getModel().isPressed();
 
-                                // 画阴影（半透明灰色，先画）
-                                g2.setColor(new Color(0, 0, 0, 50)); // alpha越小越淡
-                                g2.fillRoundRect(offset, offset, getWidth() - offset, getHeight() - offset, arc, arc);
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-                                // 画主圆角白底
-                                g2.setColor(new Color(255, 255, 255, 230));
-                                g2.fillRoundRect(0, 0, getWidth() - offset, getHeight() - offset, arc, arc);
+                    // 按下时，整体往下右偏移1px，背景颜色加深
+                    int offset = pressed ? 1 : 0;
+                    Color bgColor = pressed
+                            ? new Color(230, 230, 230, 230)  // 按下时稍微深一些
+                            : new Color(255, 255, 255, 230); // 默认半透明白
 
-                                g2.dispose();
-                                super.paintComponent(g);
-                            }
-                        };
-                        panel.setOpaque(false); // 关键：不透明背景让 paintComponent 生效
-                        panel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20)); // 统一内边距
-                        return panel;
-            }
+                    // 阴影（始终绘制，但按下时偏移更小，看起来“压低”）
+                    int shadowOffset = pressed ? 1 : SHADOW_SIZE;
+                    g2.setColor(new Color(0, 0, 0, 30));
+                    g2.fillRoundRect(shadowOffset, shadowOffset, w - shadowOffset * 2, h - shadowOffset * 2, ARC, ARC);
+
+                    // 背景
+                    g2.setColor(bgColor);
+                    g2.fillRoundRect(offset, offset, w - shadowOffset, h - shadowOffset, ARC, ARC);
+
+                    // 描边
+                    g2.setColor(new Color(200, 200, 200));
+                    g2.setStroke(new BasicStroke(0.6f));
+                    g2.drawRoundRect(offset, offset, w - shadowOffset, h - shadowOffset, ARC, ARC);
+
+                    g2.dispose();
+
+                    // 文字和焦点虚线等，用 super 完成（super 内部又会调用 paintBorder）
+                    super.paintComponent(g);
+                }
+            };
+
+            // 关键设置：关闭原生填充和边框，让自绘生效
+            button.setOpaque(false);
+            button.setContentAreaFilled(false);
+            button.setBorderPainted(false);
+            button.setFocusPainted(false);
+
+            // 保留文字样式
+            button.setFont(DEFAULT_FONT);
+            button.setForeground(Color.BLACK);
+
+            return button;
+        }
+        public static JPanel createBubblePanel() {
+            JPanel panel = new JPanel() {
+                private static final int ARC = 30;
+                private static final int SHADOW_SIZE = 4;
+
+                @Override
+                protected void paintComponent(Graphics g) {
+                    super.paintComponent(g); // 🔍 保证子组件正常绘制
+
+                    int width = getWidth();
+                    int height = getHeight();
+
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                    // 绘制整体阴影（四周模糊感）
+                    g2.setColor(new Color(0, 0, 0, 30)); // 更淡的灰色，避免突兀
+                    g2.fillRoundRect(SHADOW_SIZE, SHADOW_SIZE, width - SHADOW_SIZE * 2, height - SHADOW_SIZE * 2, ARC, ARC);
+
+                    // 绘制主面板背景（白色半透明）
+                    g2.setColor(new Color(255, 255, 255, 230));
+                    g2.fillRoundRect(0, 0, width - SHADOW_SIZE, height - SHADOW_SIZE, ARC, ARC);
+
+                    // 浅灰描边（内边界框）
+                    g2.setColor(new Color(200, 200, 200)); // 浅灰色边框
+                    g2.setStroke(new BasicStroke(0.4f)); // 稍微粗一点
+                    g2.drawRoundRect(0, 0, width - SHADOW_SIZE, height - SHADOW_SIZE, ARC, ARC);
+
+                    g2.dispose();
+                }
+            };
+            panel.setOpaque(false);
+            panel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+            return panel;
+        }
 }
