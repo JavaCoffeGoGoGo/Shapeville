@@ -22,8 +22,8 @@ public class StyleUtils {
         // ========================================
         // 1. 字体设定（Font）—— 定义统一字体规范
         // ========================================
-        private static final Font DEFAULT_FONT = new Font("Arial", Font.PLAIN, 16); // 默认字体（常规）
-        private static final Font TITLE_FONT = new Font("Arial", Font.BOLD, 24);    // 标题字体（加粗）
+        private static final Font DEFAULT_FONT = new Font("宋体", Font.PLAIN, 16); // 默认字体（常规）
+        private static final Font TITLE_FONT = new Font("宋体", Font.BOLD, 24);    // 标题字体（加粗）
 
         // ========================================
         // 2. 色彩设定（Color）—— 定义全局配色方案
@@ -88,7 +88,7 @@ public class StyleUtils {
             public static JButton createStyledButton(String text) {
                 JButton button = new JButton(text);
                 button.setFont(DEFAULT_FONT);              // 设置默认字体
-                button.setBackground(TITLE_COLOR);         // 设置按钮背景色
+                button.setBackground(BACKGROUND_COLOR);         // 设置按钮背景色
                 button.setForeground(Color.BLACK);         // 设置按钮文字色
                 button.setFocusPainted(false);             // 取消焦点边框
                 return button;
