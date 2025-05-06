@@ -30,7 +30,7 @@
 - 例子：
     ```java
     JLabel labelB = new JLabel("我有自己的样式");
-    labelB.setFont(new Font("Arial", Font.BOLD, 20)); // 手动设置字体
+    labelB.setFont(new Font("SansSerif", Font.BOLD, 20)); // 手动设置字体
     ```
 - 内部逻辑：此时不会再取 UIManager 的字体，但其他仍取UIManager的默认值，如背景等
     - Java Swing 中的样式是通过 UIManager 控制的
