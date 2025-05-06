@@ -90,7 +90,7 @@ public class Task1Panel extends AbstractTaskPanel {
 
         feedbackLabel = new JLabel(" ");
         feedbackLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        feedbackLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        feedbackLabel.setFont(new Font("SansSerif", Font.PLAIN, 14));
 
         contentPanel.add(Box.createVerticalStrut(20));
         contentPanel.add(imageLabel);

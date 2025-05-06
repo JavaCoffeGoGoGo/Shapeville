@@ -81,7 +81,7 @@ public class HomePanel extends JPanel {
                 bubble.setLayout(new BorderLayout(0, 10));
 
                 // HTML 一次写完段落，并自动换行
-                String html = "<html><div style='text-align:center; font-family:Arial; font-size:12px;'>"
+                String html = "<html><div style='text-align:center; font-family:SansSerif; font-size:12px;'>"
                         + "<b>Shapeville</b> 是一款专为 <b>1~4 年级</b>学生打造的<b>趣味数学游戏</b>，"
                         + "通过<b>互动任务</b>帮助孩子们掌握<b>图形识别</b>、<b>面积计算</b>和<b>角度分类</b>等核心知识。<br/>"
                         + "每完成一个任务，都会有<b>温馨的即时反馈</b>，让学习变得<b>轻松有趣</b>！"
@@ -99,7 +99,7 @@ public class HomePanel extends JPanel {
                 bubble.setLayout(new BorderLayout(0, 10));
 
                 JLabel title = new JLabel("任务得分机制说明", SwingConstants.CENTER);
-                title.setFont(new Font("Arial", Font.BOLD, 18));
+                title.setFont(new Font("SansSerif", Font.BOLD, 18));
                 bubble.add(title, BorderLayout.NORTH);
 
                 String[][] data = {
@@ -114,7 +114,7 @@ public class HomePanel extends JPanel {
                 };
                 JPanel table = new JPanel(new GridLayout(data.length, data[0].length));
                 table.setOpaque(false);
-                Font cellFont = new Font("Arial", Font.PLAIN, 15);
+                Font cellFont = new Font("SansSerif", Font.PLAIN, 15);
                 int rows = data.length;
                 int cols = data[0].length;
 
@@ -152,13 +152,13 @@ public class HomePanel extends JPanel {
                 bubble.setLayout(new BorderLayout(0, 10));
 
                 JLabel title = new JLabel("年级与任务选择指南", SwingConstants.CENTER);
-                title.setFont(new Font("Arial", Font.BOLD, 18));
+                title.setFont(new Font("SansSerif", Font.BOLD, 18));
                 bubble.add(title, BorderLayout.NORTH);
 
                 // 使用 HTML 让文字居中、分段更清晰
                 String html =
                         "<html>"
-                                + "<div style='text-align:center; font-family:Arial; font-size:12px;'>"
+                                + "<div style='text-align:center; font-family:SansSerif; font-size:12px;'>"
                                 +   "<div style='display:inline-block; text-align:left;'>"
                                 +     "<b>适用年级：Grade 1~2</b><br/>"
                                 +     "• <b>Task1（图形识别）</b> —— 又分为两个子任务</b><br/>"

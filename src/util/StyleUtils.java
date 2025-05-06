@@ -22,8 +22,8 @@ public class StyleUtils {
         // ========================================
         // 1. 字体设定（Font）—— 定义统一字体规范
         // ========================================
-        private static final Font DEFAULT_FONT = new Font("Arial", Font.PLAIN, 16); // 默认字体（常规）
-        private static final Font TITLE_FONT = new Font("Arial", Font.BOLD, 24);    // 标题字体（加粗）
+        private static final Font DEFAULT_FONT = new Font("SansSerif", Font.PLAIN, 16); // 默认字体（常规）
+        private static final Font TITLE_FONT = new Font("SansSerif", Font.BOLD, 24);    // 标题字体（加粗）
 
         // ========================================
         // 2. 色彩设定（Color）—— 定义全局配色方案
