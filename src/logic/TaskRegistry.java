@@ -43,12 +43,15 @@ public class TaskRegistry {
     // 用于之后输入一个任务编号，找到对应创建方法（BiFunction）并创建面板
     private static final Map<String, BiFunction<MainFrame, Integer, JPanel>> registry = Map.of(
             // 这几个参数与BiFunction里的一一对应
-            "g12_shape", (frame, grade) -> new Task1Panel(frame, grade, "g12_shape")
-//            "g12_angle", (frame, grade) -> new Task2Panel(frame, grade, "g12_angle"),
-//            "g34_area_basic", (frame, grade) -> new Task3Panel(frame, grade, "g34_area_basic"),
-//            "g34_circle", (frame, grade) -> new Task4Panel(frame, grade, "g34_circle"),
-//            "g34_area_complex", (frame, grade) -> new Bonus1Panel(frame, grade, "g34_area_complex"),
-//            "g34_src", (frame, grade) -> new Bonus2Panel(frame, grade, "g34_src")
+            // 加入图形识别合成任务注册，点击后跳到图形选择界面
+            "g12_shape", (frame, grade) -> new ShapeSubSelectorPanel(frame, grade),
+            "g12_2D_shape", (frame, grade) -> new Task1TwoDPanel(frame, grade, "g12_2D_shape"),
+            "g12_3D_shape", (frame, grade) -> new Task1ThreeDPanel(frame, grade, "g12_3D_shape"),
+            "g12_angle", (frame, grade) -> new Task2Panel(frame, grade, "g12_angle"),
+            "g34_area_basic", (frame, grade) -> new Task3Panel(frame, grade, "g34_area_basic"),
+            "g34_circle", (frame, grade) -> new Task4Panel(frame, grade, "g34_circle"),
+            "g34_area_complex", (frame, grade) -> new Bonus1Panel(frame, grade, "g34_area_complex"),
+            "g34_src", (frame, grade) -> new Bonus2Panel(frame, grade, "g34_src")
     );
 
 

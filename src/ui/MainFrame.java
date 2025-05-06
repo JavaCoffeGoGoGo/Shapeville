@@ -2,6 +2,7 @@ package ui;
 
 import logic.TaskRegistry;
 import data.TaskConfig;
+import ui.tasks.ShapeSubSelectorPanel;
 import util.StyleUtils;
 
 //导入 Java Swing 和 AWT 库中常用的类，比如 JFrame、JPanel、CardLayout
@@ -126,4 +127,18 @@ public class MainFrame extends JFrame {
                     // 正式切换到这个任务界面，相当于拉开了任务舞台的帷幕
                     showPanel(taskId);
                 }
+
+        // 5） 选择任务子面板
+            public void showShapeSubSelectorPanel(int grade) {
+                int endGrade = (grade <= 2) ? 2 : 4;
+                // 创建子任务选择面板
+                ShapeSubSelectorPanel shapeSubSelectorPanel = new ShapeSubSelectorPanel(this, grade);
+                mainPanel.add(shapeSubSelectorPanel, "SHAPE_SELECTOR");
+                showPanel("SHAPE_SELECTOR");
+            }
+
+            // 6） 年级和任务选择后跳转到子任务面板
+            public void goToTaskSelection(int grade) {
+                showShapeSubSelectorPanel(grade);
+    }
 }

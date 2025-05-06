@@ -99,61 +99,63 @@ public abstract class AbstractTaskPanel extends JPanel {
     // 2）组件布局方法——与上面的 1）内组件一一对应
     private void layoutComponents() {
 
-        // 顶部区域（说明 + 返回按钮）
+        // 顶部区域组合（说明 + 返回按钮）
         JPanel top = new JPanel(new BorderLayout());
             top.setOpaque(false);
             top.add(instructionLabel, BorderLayout.CENTER); // 左：说明文字
             top.add(homeButton, BorderLayout.EAST);       // 右：返回按钮
 
-        // 底部区域（提交 + 结束）
+        // 底部区域组合（提交 + 结束）
         JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT));//就是从左往右一个个放，排列风格设置为靠右
             bottom.setOpaque(false);//设置为透明
             bottom.add(endSessionButton);//结束对话
             bottom.add(submitButton);//任务提交
 
-        // 中部区域（题目内容，滚动容器包裹）
-        add(top, BorderLayout.NORTH);
-        add(contentPanel, BorderLayout.CENTER); // 直接放入中部
-        add(bottom, BorderLayout.SOUTH);
+        // 中部区域不需要再组合，具体的内容放置在子类中实现
+
+        // 把上面三组合起来，放到当前任务面板里
+        this.add(top, BorderLayout.NORTH);
+        this.add(contentPanel, BorderLayout.CENTER); // 直接放入中部
+        this.add(bottom, BorderLayout.SOUTH);
     }
 
 
 
-    // ==== ⏹️ 6. 通用任务控制方法 ====
+    // 3）直接提供 1）中建立组件需要的方法的具体实现，即所有任务面板都通用的一些控制行为
 
-    /** 结束当前任务：调用子类保存逻辑 + 回首页 */
-    protected void endTaskSession() {
-        if (!taskFinished) {
-            taskFinished = true;
-            saveAndFinish(); // 交由子类实现具体保存与反馈
+        // 结束当前任务：调用子类保存逻辑 + 回首页
+        protected void endTaskSession() {
+            if (!taskFinished) {
+                taskFinished = true;
+                saveAndFinish(); // 交由子类实现具体保存与反馈
+            }
+            mainFrame.returnToHome(); // 无论如何都回首页
         }
-        mainFrame.returnToHome(); // 无论如何都回首页
-    }
 
-    /** 根据得分返回一句鼓励语（用于反馈） */
-    protected String getEncouragement(int score) {
-        if (score >= 5) return "太棒了，继续保持！";
-        if (score >= 3) return "不错哦，可以再练练！";
-        return "没关系，重来一次就会更好～";
-    }
+        // 根据得分返回一句鼓励语（用于反馈）
+        protected String getEncouragement(int score) {
+            if (score >= 5) return "太棒了，继续保持！";
+            if (score >= 3) return "不错哦，可以再练练！";
+            return "没关系，重来一次就会更好～";
+        }
 
 
 
 
 
-    // ==== 📌 7. 抽象方法定义（交给子类实现） ====
+    // 4）提供 1）中建立组件需要的方法的抽象方法定义（具体交给子类实现）
 
-    /** 子类实现：返回当前任务的说明标题 */
-    protected abstract String getTaskTitle();
+        // 子类实现：返回当前任务的说明标题
+        protected abstract String getTaskTitle();
 
-    /** 子类实现：初始化任务逻辑（如生成题目） */
-    protected abstract void startTask();
+        // 子类实现：初始化任务逻辑
+        protected abstract void startTask();
 
-    /** 子类实现：提交答案后的处理逻辑 */
-    protected abstract void onSubmit();
+        // 子类实现：提交答案后的处理逻辑
+        protected abstract void onSubmit();
 
-    /** 子类实现：保存得分、弹窗反馈等结束操作 */
-    protected abstract void saveAndFinish();
+        // 子类实现：保存得分、弹窗反馈等结束操作
+        protected abstract void saveAndFinish();
 
 
 }
