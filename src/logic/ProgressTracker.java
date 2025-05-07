@@ -105,13 +105,4 @@ public class ProgressTracker {
             return maxTotal == 0 ? 0 : totalScore * 100 / maxTotal;
         }
 
-
-        // 4） 以是否有得分记录判断某个任务是否已经完成
-        public static boolean isTaskCompleted(int grade, String taskId) {
-            //✅ 含义：
-            //从 UserState 取年级表，检查是否包含该任务 ID
-            return UserState.getProgressMap()
-                    .getOrDefault(grade, Collections.emptyMap())
-                    .containsKey(taskId);//检查是否包含该任务并返回布尔值
-        }
 }

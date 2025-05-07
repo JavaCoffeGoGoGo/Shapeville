@@ -1,44 +1,38 @@
 package ui.tasks;
 
 import logic.ProgressTracker;
+import logic.GradingSystem;
 import ui.MainFrame;
+import util.StyleUtils;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import javax.swing.Timer;
 import java.util.*;
-import java.util.List;
 import javax.imageio.ImageIO;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 /**
  * Task1TwoDPanel：图形识别任务面板，实现基础积分等级的图形识别逻辑。
- * 用户观看图形图像，输入其名称，总共 4 个图形，每个图形最多尝试 3 次。
+ * 用户观看图形图像，输入其名称，总共11个图形，每个图形最多尝试 3 次。
  */
 public class Task1TwoDPanel extends AbstractTaskPanel {
 
-    //1. 资源准备
-        // 1） 图形资源
-            //图形名称的列表，表示程序支持的图形种类
+    //1. 变量初始化
+        // 1） 基本变量
+            //全部图形名称的列表
             private static final String[] SHAPES = {
                     "circle", "heptagon", "hexagon", "kite", "octagon", "oval",
                     "pentagon", "rectangle", "rhombus", "square", "triangle"
             };
-
-            //任务运行时动态生成的待识别图形列表
-            //每轮会从中抽一个出来，展示给用户
+            //待识别图形列表
             private List<String> shapeList;
-
-            //当前展示的图形名称（用来判断答案对不对）
+            //当前图形
             private String currentShape;
-
-            //当前进行到第几轮（最多4轮）
-            private int round = 0;
-
-            // 当前题目剩余尝试次数
-        private int attemptsLeft = 3;
 
         // 2） UI 组件
             // 展示图形的图片
@@ -48,171 +42,236 @@ public class Task1TwoDPanel extends AbstractTaskPanel {
             // 反馈信息，比如“正确啦”、“再试试”
             private JLabel feedbackLabel;
 
-
-
     public Task1TwoDPanel(MainFrame mainFrame, int grade, String taskId) {
-        // 直接把 mainFrame、grade 和 taskId 交给了父类 AbstractTaskPanel 的构造方法
-        // 初始化布局、按钮逻辑等，都是在父类完成的
         super(mainFrame, grade, taskId);
     }
 
 
+    //3.子类实现方法
 
+        // 1）明确任务标题
+        @Override
+        protected String getTaskTitle() {
+            return "平面图形识别：请输入图形名称（共11轮）";
+        }
 
-    @Override
-    protected String getTaskTitle() {
-        return "图形识别：请输入图形名称（共11个）";
-    }
+        // 2）开始任务
+        @Override
 
-    @Override
-    protected void startTask() {
-        //先复制出一份图形列表，方便后面逐个展示
-        shapeList = new ArrayList<>(Arrays.asList(SHAPES));
-        //Collections.shuffle() 是 Java 标准库的方法，可以把一个列表打乱顺序，用于随机抽题
-        Collections.shuffle(shapeList);
-        //初始化轮次和得分
-        round = 0;
-        score = 0;
-        //然后马上调用 loadNextShape() 加载第一题
-        loadNextShape(); // 加载第一个图形
-    }
+        protected void startTask() {
+            // 初始化状态
+            round = 0;
+            score = 0;
+            // 每题最多重试次数
+            attemptsLeft = 3;
+            //待识别图形列表
+            shapeList = new ArrayList<>(Arrays.asList(SHAPES));
+            //打乱列表顺序，用于随机抽题
+            Collections.shuffle(shapeList);
+            //调用 loadNextShape() 加载第一题
+            loadNextShape();
+        }
+        // 3）加载题目
 
-    //加载下一题图形 & 刷新界面
-    private void loadNextShape() {
-        //1. 当已经做完 11 个题或者图形列表为空时，就直接结束任务
-            if (round >= 11 || shapeList.isEmpty()) {
-                //弹出提示+保存成绩
-                saveAndFinish();
+            // 1.主方法——加载题目
+            private void loadNextShape() {
+
+                //1. 当已经做完 11 个题或者图形列表为空时，就直接结束任务
+                if (round >= 11 || shapeList.isEmpty()) {
+                    //弹出提示+保存成绩
+                    saveAndFinish();
+                    return;
+                }
+                //2.如果没有做完，更新当前任务状态
+
+                // currentShape：从 shapeList 中取出一个没有展示过的图形（并且从列表里删除它）
+                currentShape = shapeList.remove(0);// 每轮最多尝试三次
+                // 进入新一轮，重置剩余尝试次数
+                attemptsLeft = 3;
+                round++;
+                //3.添加组件并刷新
+                // 1）先把 contentPanel 里面原来的组件全部清空
+                contentPanel.removeAll();
+
+                // 2）新建组件
+
+                    // 1. 加载图像标签
+                        // 读取图像，新建标签
+                        imageLabel = new JLabel(loadShapeImage(currentShape));
+                        // 让图片在面板中央显示
+                        imageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+                    //2. 创建答案输入框
+                        answerField = new JTextField(30);
+                        answerField.setMaximumSize(new Dimension(200, 30));
+                        answerField.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+                    //3. 创建反馈标签
+                        feedbackLabel = new JLabel(" ");
+                        feedbackLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+                        feedbackLabel.setFont(new Font("SansSerif", Font.PLAIN, 14));
+
+                // 3）添加组件到contentPanel
+                    contentPanel.add(Box.createVerticalStrut(20));
+                    contentPanel.add(imageLabel);
+                    contentPanel.add(Box.createVerticalStrut(20));
+                    contentPanel.add(answerField);
+                    contentPanel.add(Box.createVerticalStrut(10));
+                    contentPanel.add(feedbackLabel);
+
+                // 4）并立刻刷新
+                    // 调用 revalidate() 和 repaint() 刷新界面，以便立即显示新题
+                    contentPanel.revalidate();
+                    contentPanel.repaint();
+
+                // 5)添加返回图形选择界面按钮
+                    // 先移除旧按钮
+                    if (backShapeButton != null && Arrays.asList(bottom.getComponents()).contains(backShapeButton)) {
+                        bottom.remove(backShapeButton);
+                    }
+                    // 创建新按钮并添加
+                        backShapeButton = StyleUtils.createStyledButton("返回图形选择界面");
+                        backShapeButton.addActionListener(e -> {
+                            // 保存当前进度
+                            ProgressTracker.saveProgress(grade, taskId, score);
+                            // 切回到 TaskSelectorPanel
+                            mainFrame.showPanel("g12_shape");
+                        });
+                        bottom.add(backShapeButton);
+                    // 刷新 bottom 面板
+                    bottom.revalidate();
+                    bottom.repaint();
+
+            }
+            // 2. 子方法一 ——先实现图片加载
+            private Icon loadShapeImage(String shapeName) {
+                String path = "/images/task1TwoD/" + shapeName + ".png";
+                try (InputStream stream = getClass().getResourceAsStream(path)) {
+                    if (stream != null) {
+                        BufferedImage original = ImageIO.read(stream);
+
+                        // 目标高度
+                        int targetHeight = 400;
+                        int originalWidth = original.getWidth();
+                        int originalHeight = original.getHeight();
+
+                        // 计算等比例缩放后的宽度
+                        double scale = (double) targetHeight / originalHeight;
+                        int scaledWidth = (int) (originalWidth * scale);
+                        int scaledHeight = targetHeight;
+
+                        // 创建带透明背景的新图像
+                        BufferedImage roundedImage = new BufferedImage(scaledWidth, scaledHeight, BufferedImage.TYPE_INT_ARGB);
+                        Graphics2D g2 = roundedImage.createGraphics();
+
+                        // 启用抗锯齿和高质量渲染
+                        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+                        g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+
+                        // 创建圆角剪切区域
+                        int arc = 20;
+                        RoundRectangle2D roundedRect = new RoundRectangle2D.Float(0, 0, scaledWidth, scaledHeight, arc, arc);
+                        g2.setClip(roundedRect);
+
+                        // 绘制缩放后的图像
+                        g2.drawImage(original.getScaledInstance(scaledWidth, scaledHeight, Image.SCALE_SMOOTH), 0, 0, null);
+
+                        // 绘制浅灰色描边
+                        g2.setClip(null); // 移除剪切区域以绘制边框
+                        g2.setColor(new Color(200, 200, 200));
+                        g2.setStroke(new BasicStroke(1.2f));
+                        g2.draw(roundedRect);
+
+                        g2.dispose();
+                        return new ImageIcon(roundedImage);
+                    } else {
+                        return new ImageIcon(); // 如果流为空，返回空图像
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    return new ImageIcon(); // 读取失败，返回空图像
+                }
+            }
+            // 3.子方法二——实现满轮退出
+            @Override
+            protected void saveAndFinish() {
+
+                // 保存进度
+                ProgressTracker.saveProgress(grade, taskId, score);
+
+                // 弹出得分提示框（点击确定或叉号都会继续执行下面代码）
+                JOptionPane.showMessageDialog(this,
+                        "任务完成！你的得分是：" + score + " / 11\n",
+                        "完成任务", JOptionPane.INFORMATION_MESSAGE);
+
+                // 返回主界面
+                mainFrame.showPanel("HOME");
+            }
+
+    //4）提交答案交互处理
+
+        // 1.主方法
+        @Override
+        protected void onSubmit() {
+            // 如果尝试次数已用尽，直接返回，不再响应提交
+            if (attemptsLeft <= 0) return;
+
+            String userInput = answerField.getText().trim().toLowerCase();
+            if (userInput.isEmpty()) {
+                feedbackLabel.setText("当前答案为空哦！");
                 return;
             }
 
-        //2.更新当前任务状态
-            // currentShape：从 shapeList 中取出一个没有展示过的图形（并且从列表里删除它）
-            currentShape = shapeList.remove(0); // 取出一个未展示的图形
-            attemptsLeft = 3;                   // 每轮最多尝试三次
-            round++;
-
-        //3.先把 contentPanel 里面原来的组件全部清空
-        contentPanel.removeAll();
-
-        //4.加载图像
-            // 调用 loadShapeImage(currentShape) 方法，读取对应图片资源，返回 ImageIcon
-            // 把图像放入 JLabel 中，用于在界面中展示
-            imageLabel = new JLabel(loadShapeImage(currentShape));
-            // setAlignmentX(Component.CENTER_ALIGNMENT) 让图片在面板中央显示
-            imageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        //5.创建答案输入框
-        answerField = new JTextField(30);
-        answerField.setMaximumSize(new Dimension(200, 30));
-        answerField.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        //6.创建反馈标签
-        feedbackLabel = new JLabel(" ");
-        feedbackLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        feedbackLabel.setFont(new Font("SansSerif", Font.PLAIN, 14));
-
-        //7.把刚才三个建好的组件加入 contentPanel，并立刻刷新
-        // 使用 BOX 布局，高度留白（Box.createVerticalStrut）来控制间距。
-        // 按顺序添加图片 - 输入框 - 反馈标签。
-        contentPanel.add(Box.createVerticalStrut(20));
-        contentPanel.add(imageLabel);
-        contentPanel.add(Box.createVerticalStrut(20));
-        contentPanel.add(answerField);
-        contentPanel.add(Box.createVerticalStrut(10));
-        contentPanel.add(feedbackLabel);
-        // 调用 revalidate() 和 repaint() 刷新界面，以便立即显示新题
-        contentPanel.revalidate();
-        contentPanel.repaint();
-    }
-
-    // 加载指定图形的图像资源
-    //
-    private Icon loadShapeImage(String shapeName) {
-        //
-        String path = "/images/task1TwoD/" + shapeName + ".png";
-
-        //
-        try (InputStream stream = getClass().getResourceAsStream(path)) {
-            if (stream != null) {
-                //使用 ImageIO.read() 将流读取为 BufferedImage
-                BufferedImage img = ImageIO.read(stream);
-                return new ImageIcon(img);
-
-            //如果资源找不到或读取失败，就返回一个空的 ImageIcon() 占位，避免程序崩溃。
-            //同时输出错误堆栈，方便调试。
-            } else {
-                return new ImageIcon(); // 加载失败占位
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            return new ImageIcon(); // 异常处理
-        }
-    }
-
-    @Override
-    protected void onSubmit() {
-
-        // 如果尝试次数已用尽，直接返回，不再响应提交
-        if (attemptsLeft <= 0) return;
-
-        String userInput = answerField.getText().trim().toLowerCase();//去除前后空格后将输入转为小写，统一格式
-        if (userInput.isEmpty()) {//若输入为空，给予提示信息并返回
-            feedbackLabel.setText("请输入你的答案！");
-            return;
-        }
-
-        // 答对了
-        if (userInput.equals(currentShape)) {
-            //得分加一
-            score++;
-            //展示“✅ 正确”和鼓励语
-            feedbackLabel.setText("✅ 正确！" + getEncouragement(score));
-            attemptCount++;
-            submitButton.setEnabled(false); // 防止重复提交
-
-            //设置 1 秒后自动进入下一题，期间不能提交⚠️
-            Timer timer = new Timer(1000, e -> {
-                submitButton.setEnabled(true);
-                loadNextShape();
-            });
-            timer.setRepeats(false);
-            timer.start();
-
-        //答错了
-        } else {
-            //减少剩余尝试次数
+            // 先减去一次机会
             attemptsLeft--;
-            //如果还有机会，则提示“再试一次”
-            if (attemptsLeft > 0) {
-                feedbackLabel.setText("❌ 错误！再试一次～ 剩余尝试：" + attemptsLeft);
-            //否则显示正确答案，计入尝试
-            } else {
-                feedbackLabel.setText("❌ 正确答案是：" + currentShape);
-                attemptCount++;
 
-                //错误后暂停时间稍长（1500ms）再进入下一题；
-                //同样禁用按钮，防止用户中断
-                submitButton.setEnabled(false);
-                Timer timer = new Timer(1500, e -> {
+            // 计算这是第几次尝试：Basic 模式下，第一次尝试时 attemptsLeft 从 3 -> 2，
+            // 所以 attemptNum = 3 - attemptsLeft
+            int attemptNum = 3 - attemptsLeft;
+
+            // 答对了
+            if (userInput.equals(currentShape)) {
+                // 根据 Basic 规则给分
+                int delta = GradingSystem.grade(attemptNum, /*isAdvanced=*/false);
+                score += delta;
+
+                feedbackLabel.setText("✅ 正确！本次得分：" + delta + "，累计：" + score);
+                attemptCount++;
+                submitButton.setEnabled(false); // 防止重复提交
+
+                // 设置 1 秒后自动进入下一题
+                Timer timer = new Timer(1000, e -> {
                     submitButton.setEnabled(true);
                     loadNextShape();
                 });
                 timer.setRepeats(false);
                 timer.start();
+
+            } else {
+                // 答错，但还剩机会
+                if (attemptsLeft > 0) {
+                    feedbackLabel.setText("❌ 错误！再试一次～");
+                } else {
+                    // 最后一次也错了，显示正确答案（得分为 0）
+                    feedbackLabel.setText("❌ 正确答案是：" + currentShape + "（得分 0）");
+                    attemptCount++;
+
+                    submitButton.setEnabled(false);
+                    Timer timer = new Timer(1000, e -> {
+                        submitButton.setEnabled(true);
+                        loadNextShape();
+                    });
+                    timer.setRepeats(false);
+                    timer.start();
+                }
             }
         }
-    }
+        //2.子方法：反馈信息
+        @Override
+        protected String getEncouragement() {
+            return "干得漂亮！";
+        }
 
-    @Override
-    protected void saveAndFinish() {
-        //将 taskFinished 设置为 true，表示任务已经完成
-        taskFinished = true;
-        //调用 ProgressTracker.saveProgress() 方法保存当前任务的得分
-        ProgressTracker.saveProgress(grade, taskId, score);
-        //通过 JOptionPane 弹出对话框，提示用户任务已完成并显示得分
-        JOptionPane.showMessageDialog(this,
-                "任务完成！你的得分是：" + score + " / 11\n" + getEncouragement(score),
-                "完成任务", JOptionPane.INFORMATION_MESSAGE);
-    }
+
 }

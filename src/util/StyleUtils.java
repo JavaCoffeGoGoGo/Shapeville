@@ -98,20 +98,13 @@ public class StyleUtils {
                 return label;
             }
 
-            // 2）创建任务说明标签
-            public static JLabel createInstructionLabel(String text) {
-                JLabel label = new JLabel(text);
-                label.setFont(DEFAULT_FONT);       // 使用常规字体
-                label.setForeground(TEXT_COLOR);   // 黑色文字
-                return label;
-            }
 
 
         // ========================================
-        // 3. 一个特殊的“继承组件类 + 匿名内部类”的封装
+        // 3. 两个特殊的“继承组件类 + 匿名内部类”的封装
         // ========================================
 
-        // 1）创建统一风格按钮
+        // 1）创建气泡风格按钮
         public static JButton createStyledButton(String text) {
             JButton button = new JButton(text) {
                 private static final int ARC = 20;
@@ -164,6 +157,7 @@ public class StyleUtils {
 
             return button;
         }
+        //2）创建气泡风格面板
         public static JPanel createBubblePanel() {
             JPanel panel = new JPanel() {
                 private static final int ARC = 30;
@@ -199,4 +193,5 @@ public class StyleUtils {
             panel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
             return panel;
         }
+
 }

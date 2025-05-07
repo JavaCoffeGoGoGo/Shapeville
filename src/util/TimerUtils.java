@@ -5,36 +5,81 @@ import java.util.function.Consumer;
 
 /**
  * 💡模块说明：
- * TimerUtils 是一个 Swing 定时器工具类，用于实现简单的倒计时功能。
- * 常用于任务模块中限时答题、节奏控制等交互场景。
+ * TimerUtils 是一个 Swing 定时器工具类，用于实现灵活倒计时功能。
+ * 支持开始、暂停、恢复与结束回调，适用于任务限时控制与 UI 同步。
  */
 public class TimerUtils {
-    // Swing 计时器（每秒触发一次 ActionEvent）
     private static Timer timer;
+    private static int[] remaining; // 剩余时间（秒）
 
-    //1. 启动倒计时任务。
+    /**
+     * 启动倒计时。
+     * @param seconds 倒计时总秒数
+     * @param onTick 每秒触发回调（传入剩余秒数）
+     * @param onFinish 倒计时结束时触发的回调（可选，可为 null）
+     */
+    public static void startCountdown(int seconds, Consumer<Integer> onTick, Runnable onFinish) {
+        stopCountdown(); // 若已有计时器，先停掉
+        remaining = new int[]{seconds};
 
-    public static void startCountdown(int seconds, Consumer<Integer> onTick) {
-        // 使用数组包裹整型变量，以便在 lambda 表达式中修改（Java 限制）
-        final int[] remaining = { seconds };
-
-        // 创建定时器，每隔 1000 毫秒执行一次
         timer = new Timer(1000, e -> {
-            remaining[0]--;                     // 每秒递减剩余时间
-            onTick.accept(remaining[0]);       // 执行回调逻辑（例如更新 UI 显示）
+            remaining[0]--;
+            onTick.accept(remaining[0]);
             if (remaining[0] <= 0) {
-                timer.stop();                  // 倒计时结束后停止定时器
+                timer.stop();
+                if (onFinish != null) {
+                    onFinish.run();
+                }
             }
         });
 
-        timer.start(); // 启动倒计时
+        timer.start();
     }
 
-    // 2. 主动停止倒计时（例如在任务提前结束或强制终止时调用）。
+    /**
+     * 主动停止倒计时（例如任务中断、跳题等）。
+     */
     public static void stopCountdown() {
-        // 确保计时器存在且仍在运行
         if (timer != null && timer.isRunning()) {
             timer.stop();
         }
+    }
+
+    /**
+     * 获取当前剩余秒数（适用于保存状态/展示）。
+     */
+    public static int getRemainingSeconds() {
+        return remaining != null ? remaining[0] : 0;
+    }
+
+    /**
+     * 暂停倒计时（可用于用户临时离开/切换页面）。
+     */
+    public static void pauseCountdown() {
+        if (timer != null && timer.isRunning()) {
+            timer.stop();
+        }
+    }
+
+    /**
+     * 恢复倒计时（配合 pause 使用）。
+     * @param onTick 每秒回调
+     * @param onFinish 倒计时结束回调
+     */
+    public static void resumeCountdown(Consumer<Integer> onTick, Runnable onFinish) {
+        if (remaining == null || remaining[0] <= 0) return;
+
+        timer = new Timer(1000, e -> {
+            remaining[0]--;
+            onTick.accept(remaining[0]);
+            if (remaining[0] <= 0) {
+                timer.stop();
+                if (onFinish != null) {
+                    onFinish.run();
+                }
+            }
+        });
+
+        timer.start();
     }
 }

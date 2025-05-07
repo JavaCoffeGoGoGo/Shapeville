@@ -13,11 +13,11 @@ import java.awt.*;
  */
 public class HomePanel extends JPanel {
 
-    //💡HomePanel：主页面板，负责展示欢迎界面与导航入口
+    // HomePanel：主页面板，负责展示欢迎界面与导航入口
 
     // 1.成员变量声明（仅保存引用）
     //  它是一个引用变量（reference variable），本身不是对象，只是个地址位
-    //  现在先留个空位置，但已经能承诺是留给MainFrame，即使他不知道MainFrame是啥（底层逻辑未知⚠️）
+    //  现在先留个空位置，但已经能承诺是留给MainFrame，即使他不知道MainFrame是啥
     //  之后指向了MainFrame传入的参数，就可以用于页面跳转与状态传递
     private MainFrame mainFrame;
 
@@ -30,11 +30,11 @@ public class HomePanel extends JPanel {
         // 1）先设置当前面板整体布局和样式
 
             // 整体布局为 BorderLayout(即上分上下左右中五大区)
-            this.setLayout(new BorderLayout());
+            this.setLayout(new BorderLayout(20,0));
             // 加宽边界
             this.setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
 
-        // 2）然后逐个区域进行初始化
+        // 2）然后逐个区域进行初始化并添加
 
             // 1. 顶部区域：标题文字
                 //先准备组件
@@ -46,7 +46,7 @@ public class HomePanel extends JPanel {
                 //1）先准备组件,整体上是一个中间区域的小面板，仍边界布局 BorderLayout 来排列它的子元素
                     //1. 先设置这个小面板的整体样式
                         // 水平/垂直方向都留 10 像素间距，即上下左右中之间
-                        JPanel centerPanel = new JPanel(new BorderLayout(10, 20));
+                        JPanel centerPanel = new JPanel(new BorderLayout(20, 20));
                         //设置透明背景
                         centerPanel.setOpaque(false);
                         //设置边距
@@ -63,16 +63,16 @@ public class HomePanel extends JPanel {
                 //2）再定位添加到HomePanel面板里
                 this.add(centerPanel, BorderLayout.CENTER);
 
-            // 🟥 3. 底部区域：进度条 + 控制按钮（回首页、结束会话）
+            // 3. 底部区域：进度条 + 控制按钮（回首页、结束会话）
                 //准备和添加同时进行
                 this.add(this.createBottomControlPanel(), BorderLayout.SOUTH);
     }
 
 
 
-    // 3.子面板构建方法（👷各独立区域的构建逻辑）
+    // 3.子面板构建方法（独立区域的构建逻辑）
 
-    // 🟦 centerPanel顶部等级说明区（静态文字表格说明）
+    //  centerPanel顶部等级说明区
 
     // ================= 1. 先创建一系列气泡 =================
             // ================= 1. 1）再建造Shapeville 简短介绍气泡 =================
@@ -149,7 +149,7 @@ public class HomePanel extends JPanel {
             // ================= 1. 3）再建造年级与任务选择指南气泡 =================
             private JPanel createGradeTaskIntroBubble() {
                 JPanel bubble = StyleUtils.createBubblePanel();
-                bubble.setLayout(new BorderLayout(0, 10));
+                bubble.setLayout(new BorderLayout(20, 20));
 
                 JLabel title = new JLabel("年级与任务选择指南", SwingConstants.CENTER);
                 title.setFont(new Font("SansSerif", Font.BOLD, 18));
@@ -203,12 +203,12 @@ public class HomePanel extends JPanel {
 
 
 
-    // 🟨 centerPanel中部年级选择区（按钮绑定跳转逻辑）
+    // centerPanel中部年级选择区（按钮绑定跳转逻辑）
     private JPanel createGradeSelectionPanel() {
 
         // 1. 整体布局设置
         // 采用边界布局（上下结构：上是提示文字，下是按钮区域）
-        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        JPanel panel = new JPanel(new BorderLayout(20, 20));
         panel.setOpaque(false); // 背景透明
 
         //2. 组件添加
@@ -243,7 +243,7 @@ public class HomePanel extends JPanel {
 
 
 
-    // 🟥 HomePanel底部控制区（进度条 + 两个控制按钮）
+    // HomePanel底部控制区（进度条 + 两个控制按钮）
     private JPanel createBottomControlPanel() {
 
         //1. 整体设置
@@ -270,7 +270,7 @@ public class HomePanel extends JPanel {
             //2. 按钮设置
             // 整体配置
 
-            // “❌ 结束会话”按钮（弹窗展示得分）
+            // “结束会话”按钮（弹窗展示得分）
             JButton endButton = StyleUtils.createStyledButton("结束会话");
 
             endButton.addActionListener(e -> {
@@ -288,7 +288,7 @@ public class HomePanel extends JPanel {
                 }
             });
 
-            // “🔁 重置会话”按钮（确认后跳转首页 + 关闭窗口）
+            // “重置会话”按钮（确认后跳转首页 + 关闭窗口）
             JButton resetButton = StyleUtils.createStyledButton("重置任务进度");
 
             resetButton.addActionListener(e -> {

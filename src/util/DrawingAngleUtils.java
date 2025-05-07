@@ -34,7 +34,7 @@ public class DrawingAngleUtils {
         g.drawLine(centerX, centerY, x2, y2);
 
         // 绘制角度标签（角度）
-        g.setFont(new Font("Arial", Font.PLAIN, 14));
+        g.setFont(new Font("SansSerif", Font.PLAIN, 14));
         g.drawString(angle + "°", centerX + 10, centerY - 10);
     }
 }
