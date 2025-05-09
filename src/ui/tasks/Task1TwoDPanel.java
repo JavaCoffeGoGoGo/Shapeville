@@ -268,7 +268,7 @@ public class Task1TwoDPanel extends AbstractTaskPanel {
                 int delta = GradingSystem.grade(attemptNum, /*isAdvanced=*/false);
                 score += delta;
 
-                feedbackLabel.setText("正确！干的漂亮！本次得分：" + delta + "，累计：" + score);
+                feedbackLabel.setText("正确！干的漂亮～");
                 attemptCount++;
                 submitButton.setEnabled(false); // 防止重复提交
 
