@@ -12,8 +12,6 @@ import java.awt.*;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 /**
  * Task3Panel：图形面积计算任务面板
@@ -32,13 +30,11 @@ public class Task3Panel extends AbstractTaskPanel {
     private JTextField answerField;
     private JPanel drawingPanel;
     private Timer countdownTimer;
-    private int remainingSeconds;
     private boolean isRevealMode = false;
 
     public Task3Panel(MainFrame mainFrame, int grade, String taskId) {
         super(mainFrame, grade, taskId);
         backButton.setVisible(true);
-        // feedbackLabel 初始化留在 initInputArea 中，避免 startTask 调用前空指针
     }
 
     @Override
@@ -51,12 +47,9 @@ public class Task3Panel extends AbstractTaskPanel {
         round = 0;
         score = 0;
         attemptsLeft = 3;
-
-        // 随机选4个图形
         shapeList = new ArrayList<>(Arrays.asList(SHAPES));
         Collections.shuffle(shapeList);
         shapeList = shapeList.subList(0, 4);
-
         loadNextShape();
     }
 
@@ -65,19 +58,19 @@ public class Task3Panel extends AbstractTaskPanel {
             saveAndFinish();
             return;
         }
-
         currentShape = shapeList.remove(0);
         attemptsLeft = 3;
         round++;
         isRevealMode = false;
-
         dims = generateDimsMap();
 
         contentPanel.removeAll();
+        contentPanel.add(Box.createVerticalGlue());
         initTimerLabel();
         initDrawingPanel();
         initInputArea();
         startCountdown(180);
+        contentPanel.add(Box.createVerticalGlue());
 
         contentPanel.revalidate();
         contentPanel.repaint();
@@ -97,49 +90,36 @@ public class Task3Panel extends AbstractTaskPanel {
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 int w = getWidth(), h = getHeight();
-                String imgPath = "/images/task3/" + currentShape + ".png";
-                Image img;
+                String path = isRevealMode
+                        ? "/images/task3/areaOf" + capitalize(currentShape) + ".png"
+                        : "/images/task3/" + currentShape + ".png";
                 try {
-                    img = ImageIO.read(getClass().getResource(imgPath));
+                    Image img = ImageIO.read(getClass().getResource(path));
+                    int iw = img.getWidth(null), ih = img.getHeight(null);
+                    int x = (w - iw) / 2, y = (h - ih) / 2;
+                    g.drawImage(img, x, y, null);
+                    if (!isRevealMode) {
+                        int[] d = dims.get(currentShape);
+                        g.setFont(StyleUtils.DEFAULT_FONT);
+                        g.setColor(StyleUtils.TEXT_COLOR);
+                        switch (currentShape) {
+                            case "rectangle": case "parallelogram":
+                                g.drawString("w=" + d[0], x + iw + 10, y + 20);
+                                g.drawString("h=" + d[1], x + iw + 10, y + 40);
+                                break;
+                            case "triangle":
+                                g.drawString("b=" + d[0], x + iw + 10, y + 20);
+                                g.drawString("h=" + d[1], x + iw + 10, y + 40);
+                                break;
+                            case "trapezium":
+                                g.drawString("a=" + d[0], x + iw + 10, y + 20);
+                                g.drawString("b=" + d[1], x + iw + 10, y + 40);
+                                g.drawString("h=" + d[2], x + iw + 10, y + 60);
+                                break;
+                        }
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
-                    return;
-                }
-                int iw = img.getWidth(null), ih = img.getHeight(null);
-                int x = (w - iw) / 2, y = (h - ih) / 2;
-
-                if (isRevealMode) {
-                    String revealPath = "/images/task3/areaOf"
-                            + capitalize(currentShape) + ".png";
-                    try {
-                        Image rev = ImageIO.read(getClass().getResource(revealPath));
-                        int rw = rev.getWidth(null), rh = rev.getHeight(null);
-                        g.drawImage(rev, (w - rw) / 2, (h - rh) / 2, null);
-                        return;
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                g.drawImage(img, x, y, null);
-                int[] d = dims.get(currentShape);
-                g.setFont(StyleUtils.DEFAULT_FONT);
-                g.setColor(StyleUtils.TEXT_COLOR);
-                switch (currentShape) {
-                    case "rectangle":
-                    case "parallelogram":
-                        g.drawString("w=" + d[0], x + iw + 10, y + 20);
-                        g.drawString("h=" + d[1], x + iw + 10, y + 40);
-                        break;
-                    case "triangle":
-                        g.drawString("b=" + d[0], x + iw + 10, y + 20);
-                        g.drawString("h=" + d[1], x + iw + 10, y + 40);
-                        break;
-                    case "trapezium":
-                        g.drawString("a=" + d[0], x + iw + 10, y + 20);
-                        g.drawString("b=" + d[1], x + iw + 10, y + 40);
-                        g.drawString("h=" + d[2], x + iw + 10, y + 60);
-                        break;
                 }
             }
         };
@@ -151,10 +131,8 @@ public class Task3Panel extends AbstractTaskPanel {
 
     private void initInputArea() {
         answerField = StyleUtils.createRoundedTextField(200, 32);
-        answerField.setMaximumSize(answerField.getPreferredSize());
         answerField.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // 在此初始化反馈标签，确保非空
         feedbackLabel = new JLabel(" ");
         feedbackLabel.setFont(StyleUtils.DEFAULT_FONT);
         feedbackLabel.setForeground(StyleUtils.TEXT_COLOR);
@@ -166,17 +144,24 @@ public class Task3Panel extends AbstractTaskPanel {
         contentPanel.add(feedbackLabel);
     }
 
+    // 在类成员中，保留这个字段，不要再用局部 seconds
+    private int remainingSeconds;
+
     private void startCountdown(int seconds) {
+        // 把传入的 seconds 赋给字段
         remainingSeconds = seconds;
+
         if (countdownTimer != null && countdownTimer.isRunning()) {
             countdownTimer.stop();
         }
+
         countdownTimer = new Timer(1000, e -> {
             remainingSeconds--;
             timerLabel.setText("剩余时间：" + remainingSeconds + "s");
+
             if (remainingSeconds <= 0) {
                 countdownTimer.stop();
-                showRevealPanel();
+                revealAndNext();
             }
         });
         countdownTimer.start();
@@ -185,90 +170,37 @@ public class Task3Panel extends AbstractTaskPanel {
     @Override
     protected void onSubmit() {
         if (attemptsLeft <= 0) return;
-
-        String text = answerField.getText().trim();
         double userAns;
         try {
-            userAns = Double.parseDouble(text);
+            userAns = Double.parseDouble(answerField.getText().trim());
         } catch (Exception ex) {
             feedbackLabel.setText("请输入有效数字！");
-            feedbackLabel.revalidate();
-            feedbackLabel.repaint();
             return;
         }
-
         attemptsLeft--;
         int attemptNum = 3 - attemptsLeft;
         double correctArea = calcArea(currentShape, dims.get(currentShape));
 
         if (Math.abs(userAns - correctArea) < 0.01) {
-            int delta = GradingSystem.grade(attemptNum, false);
-            score += delta;
-            feedbackLabel.setText("正确！本次得分：" + delta + "，累计：" + score);
-            feedbackLabel.revalidate();
-            feedbackLabel.repaint();
-
-            if (countdownTimer.isRunning()) countdownTimer.stop();
-
-            // 一次性定时器进入下一题
-            Timer t = new Timer(1000, ev -> {
-                ((Timer)ev.getSource()).stop();
-                loadNextShape();
-            });
-            t.setRepeats(false);
-            t.start();
-
+            score += GradingSystem.grade(attemptNum, false);
+            revealAndNext();
         } else if (attemptsLeft > 0) {
             feedbackLabel.setText("错误！再试一次～");
-            feedbackLabel.revalidate();
-            feedbackLabel.repaint();
-
         } else {
-            if (countdownTimer.isRunning()) countdownTimer.stop();
-            showRevealPanel();
+            revealAndNext();
         }
     }
 
-    private Map<String,int[]> generateDimsMap() {
-        Map<String,int[]> map = new HashMap<>();
-        Random rnd = new Random();
-        map.put("rectangle",    new int[]{1 + rnd.nextInt(20), 1 + rnd.nextInt(20)});
-        map.put("triangle",     new int[]{1 + rnd.nextInt(20), 1 + rnd.nextInt(20)});
-        map.put("trapezium",    new int[]{1 + rnd.nextInt(20), 1 + rnd.nextInt(20), 1 + rnd.nextInt(20)});
-        map.put("parallelogram",new int[]{1 + rnd.nextInt(20), 1 + rnd.nextInt(20)});
-        return map;
-    }
-
-    private double calcArea(String shape, int[] d) {
-        return switch (shape) {
-            case "rectangle", "parallelogram" -> d[0] * d[1];
-            case "triangle"                   -> d[0] * d[1] / 2.0;
-            case "trapezium"                  -> (d[0] + d[1]) * d[2] / 2.0;
-            default                            -> 0.0;
-        };
-    }
-
-    private String capitalize(String s) {
-        if (s == null || s.isEmpty()) return s;
-        return s.substring(0,1).toUpperCase() + s.substring(1);
-    }
-
-    private void showRevealPanel() {
+    /** 揭示当前答案，并自动在1秒后进入下一题 */
+    private void revealAndNext() {
+        if (countdownTimer != null && countdownTimer.isRunning()) countdownTimer.stop();
         isRevealMode = true;
+        feedbackLabel.setText(""); // 隐藏旧提示
         contentPanel.removeAll();
-
-        String imgPath = "/images/task3/areaOf" + capitalize(currentShape) + ".png";
-        ImageIcon icon;
-        try {
-            icon = new ImageIcon(ImageIO.read(getClass().getResource(imgPath)));
-        } catch (IOException e) {
-            e.printStackTrace();
-            icon = new ImageIcon();
-        }
-        JLabel imgLabel = new JLabel(icon);
-        imgLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        contentPanel.add(imgLabel);
-
+        contentPanel.add(Box.createVerticalGlue());
+        initTimerLabel();     // 可保留时间显示或隐藏
+        initDrawingPanel();   // 会根据isRevealMode加载带公式图
+        // 公式与代入
         int[] d = dims.get(currentShape);
         double ans = calcArea(currentShape, d);
         String html = String.format(
@@ -282,29 +214,58 @@ public class Task3Panel extends AbstractTaskPanel {
         txt.setAlignmentX(Component.CENTER_ALIGNMENT);
         contentPanel.add(Box.createVerticalStrut(10));
         contentPanel.add(txt);
-
+        contentPanel.add(Box.createVerticalGlue());
         contentPanel.revalidate();
         contentPanel.repaint();
+
+        // 延迟 1 秒进入下一题
+        new Timer(3000, e -> {
+            ((Timer)e.getSource()).stop();
+            loadNextShape();
+        }).start();
     }
 
-    private String buildFormula(String shape) {
+    private Map<String,int[]> generateDimsMap() {
+        Random rnd = new Random();
+        Map<String,int[]> m = new HashMap<>();
+        m.put("rectangle",    new int[]{1 + rnd.nextInt(20), 1 + rnd.nextInt(20)});
+        m.put("triangle",     new int[]{1 + rnd.nextInt(20), 1 + rnd.nextInt(20)});
+        m.put("trapezium",    new int[]{1 + rnd.nextInt(20), 1 + rnd.nextInt(20), 1 + rnd.nextInt(20)});
+        m.put("parallelogram",new int[]{1 + rnd.nextInt(20), 1 + rnd.nextInt(20)});
+        return m;
+    }
+
+    private double calcArea(String shape, int[] d) {
         return switch (shape) {
+            case "rectangle", "parallelogram" -> d[0] * d[1];
+            case "triangle"                   -> d[0] * d[1] / 2.0;
+            case "trapezium"                  -> (d[0] + d[1]) * d[2] / 2.0;
+            default                            -> 0.0;
+        };
+    }
+
+    private String buildFormula(String s) {
+        return switch (s) {
             case "rectangle"     -> "A = w × h";
             case "triangle"      -> "A = b × h / 2";
             case "trapezium"     -> "A = (a + b) × h / 2";
             case "parallelogram" -> "A = b × h";
-            default                -> "";
+            default               -> "";
         };
     }
 
-    private String buildSubstitution(String shape, int[] d) {
-        return switch (shape) {
+    private String buildSubstitution(String s, int[] d) {
+        return switch (s) {
             case "rectangle"     -> String.format("A = %d × %d", d[0], d[1]);
             case "triangle"      -> String.format("A = %d × %d / 2", d[0], d[1]);
             case "trapezium"     -> String.format("A = (%d + %d) × %d / 2", d[0], d[1], d[2]);
             case "parallelogram" -> String.format("A = %d × %d", d[0], d[1]);
-            default                -> "";
+            default               -> "";
         };
+    }
+
+    private String capitalize(String s) {
+        return s.substring(0,1).toUpperCase() + s.substring(1);
     }
 
     @Override

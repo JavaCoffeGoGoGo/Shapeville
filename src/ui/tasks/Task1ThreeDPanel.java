@@ -194,7 +194,7 @@ public class Task1ThreeDPanel extends AbstractTaskPanel {
         int attemptNum = 3 - attemptsLeft;
 
         if (userInput.equals(currentShape)) {
-            int delta = GradingSystem.grade(attemptNum, /*isAdvanced=*/false);
+            int delta = GradingSystem.grade(attemptNum, /*isAdvanced=*/true);
             score += delta;
             feedbackLabel.setText("正确！干的漂亮～");
             attemptCount++;
