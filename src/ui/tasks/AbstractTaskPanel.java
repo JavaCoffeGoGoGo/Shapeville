@@ -69,17 +69,30 @@ public abstract class AbstractTaskPanel extends JPanel {
                 submitButton.addActionListener(e -> onSubmit());
 
                 // 3）返回任务选择界面按钮
-                backButton = StyleUtils.createStyledButton("返回任务选择界面");
-                backButton.addActionListener(e -> {
-                            // 切回到 TaskSelectorPanel
-                            mainFrame.showPanel("SELECTOR");
-                });
+                            backButton = StyleUtils.createStyledButton("返回任务选择界面");
+                            backButton.addActionListener(e -> {
+                                int option = StyleUtils.showStyledConfirmDialog(
+                                        this,
+                                        "退出确认",
+                                        "确认中途退出吗？\n当前进度将不会保存。"
+                                );
+                                if (option == JOptionPane.YES_OPTION) {
+                                    mainFrame.showPanel("SELECTOR");
+                                }
+                            });
+
                 // 4）返回首页按钮
-                homeButton = StyleUtils.createStyledButton("Home");
-                homeButton.addActionListener(e -> {
-                    ProgressTracker.saveProgress(grade, taskId, score);  // 存档
-                    mainFrame.returnToHome();  // 回首页
-                });
+                            homeButton = StyleUtils.createStyledButton("Home");
+                            homeButton.addActionListener(e -> {
+                                int option = StyleUtils.showStyledConfirmDialog(
+                                        this,
+                                        "退出确认",
+                                        "确认中途退出吗？\n当前进度将不会保存。"
+                                );
+                                if (option == JOptionPane.YES_OPTION) {
+                                    mainFrame.returnToHome();
+                                }
+            });
 
             // 2. 中间内容面板（子类添加组件的容器）
             contentPanel = StyleUtils.createBubblePanel();

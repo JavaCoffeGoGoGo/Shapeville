@@ -44,6 +44,23 @@ public class Task1TwoDPanel extends AbstractTaskPanel {
 
     public Task1TwoDPanel(MainFrame mainFrame, int grade, String taskId) {
         super(mainFrame, grade, taskId);
+        backButton.setVisible(false);
+
+        // remove old buttons
+        bottom.remove(homeButton);
+        bottom.remove(backShapeButton);
+
+        // add in new order
+        bottom.add(submitButton);         // 保留 submit 在最左
+        bottom.add(backShapeButton);      // 再 返回上一界面
+        bottom.add(homeButton);           // 先 Home
+
+        bottom.revalidate();
+        bottom.repaint();
+
+
+        feedbackLabel.setFont(StyleUtils.DEFAULT_FONT);
+        feedbackLabel.setForeground(StyleUtils.TEXT_COLOR);
     }
 
 
@@ -102,9 +119,18 @@ public class Task1TwoDPanel extends AbstractTaskPanel {
                         imageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
                     //2. 创建答案输入框
-                        answerField = new JTextField(30);
-                        answerField.setMaximumSize(new Dimension(200, 30));
-                        answerField.setAlignmentX(Component.CENTER_ALIGNMENT);
+                    // 1) 创建输入框
+                    int imgW = imageLabel.getIcon().getIconWidth();
+                    int h = 32;
+                    answerField = StyleUtils.createRoundedTextField(imgW, h);
+
+                    // 3) 边框变细：1px
+                    answerField.setBorder(BorderFactory.createLineBorder(StyleUtils.TITLE_COLOR, 1));
+
+                    // 4) 字体、前景色
+                    answerField.setFont(StyleUtils.DEFAULT_FONT);
+                    answerField.setForeground(StyleUtils.TEXT_COLOR);
+                    answerField.setBackground(Color.WHITE);
 
                     //3. 创建反馈标签
                         feedbackLabel = new JLabel(" ");
@@ -130,12 +156,16 @@ public class Task1TwoDPanel extends AbstractTaskPanel {
                         bottom.remove(backShapeButton);
                     }
                     // 创建新按钮并添加
-                        backShapeButton = StyleUtils.createStyledButton("返回图形选择界面");
+                        backShapeButton = StyleUtils.createStyledButton("返回上一界面");
                         backShapeButton.addActionListener(e -> {
-                            // 保存当前进度
-                            ProgressTracker.saveProgress(grade, taskId, score);
-                            // 切回到 TaskSelectorPanel
-                            mainFrame.showPanel("g12_shape");
+                            int option = StyleUtils.showStyledConfirmDialog(
+                                                this,
+                                            "退出确认",
+                                        "确认中途退出吗？\n当前进度将不会保存。"
+                                                   );
+                                    if (option == JOptionPane.YES_OPTION) {
+                                            mainFrame.showPanel("g12_shape");
+                                       }
                         });
                         bottom.add(backShapeButton);
                     // 刷新 bottom 面板
@@ -199,11 +229,13 @@ public class Task1TwoDPanel extends AbstractTaskPanel {
 
                 // 保存进度
                 ProgressTracker.saveProgress(grade, taskId, score);
-
+                // 先让对话框用我们的全局样式
+                StyleUtils.applyGlobalStyle(SwingUtilities.getWindowAncestor(this));
                 // 弹出得分提示框（点击确定或叉号都会继续执行下面代码）
                 JOptionPane.showMessageDialog(this,
-                        "任务完成！你的得分是：" + score + " / 11\n",
+                        "任务完成！你的得分是：" + score + " / 11\n\n",
                         "完成任务", JOptionPane.INFORMATION_MESSAGE);
+
 
                 // 返回主界面
                 mainFrame.showPanel("HOME");
@@ -236,7 +268,7 @@ public class Task1TwoDPanel extends AbstractTaskPanel {
                 int delta = GradingSystem.grade(attemptNum, /*isAdvanced=*/false);
                 score += delta;
 
-                feedbackLabel.setText("✅ 正确！本次得分：" + delta + "，累计：" + score);
+                feedbackLabel.setText("正确！干的漂亮！本次得分：" + delta + "，累计：" + score);
                 attemptCount++;
                 submitButton.setEnabled(false); // 防止重复提交
 
@@ -251,10 +283,10 @@ public class Task1TwoDPanel extends AbstractTaskPanel {
             } else {
                 // 答错，但还剩机会
                 if (attemptsLeft > 0) {
-                    feedbackLabel.setText("❌ 错误！再试一次～");
+                    feedbackLabel.setText("错误！再试一次～");
                 } else {
                     // 最后一次也错了，显示正确答案（得分为 0）
-                    feedbackLabel.setText("❌ 正确答案是：" + currentShape + "（得分 0）");
+                    feedbackLabel.setText("正确答案是：" + currentShape + "（得分 0）");
                     attemptCount++;
 
                     submitButton.setEnabled(false);

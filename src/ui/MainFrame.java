@@ -50,7 +50,7 @@ public class MainFrame extends JFrame {
 
         //1. 首先，是初始化窗口的基本属性（搭建剧院房子本身）
         setTitle("Shapeville");//设置标题
-        setSize(1000, 1000);//设置窗口尺寸
+        setSize(1000, 943);//设置窗口尺寸
         setLocationRelativeTo(null);//居中显示
 
         //2. 之后，进一步确定整体剧院风格颜色等样式（作用于整个 MainFrame）
@@ -72,7 +72,7 @@ public class MainFrame extends JFrame {
         add(mainPanel);
 
         //5. 最后，切换到首页homepanel卡片（正式拉开帷幕）
-        showPanel("HOME");
+        this.showPanel("HOME");
     }
 
     // ===============================
@@ -86,16 +86,15 @@ public class MainFrame extends JFrame {
             //底层公共方法，负责显示某个命名面板（使用 CardLayout 的 show 方法）。
             public void showPanel(String name) {
                 cardLayout.show(mainPanel, name);
+                // 如果切回首页，立即刷新进度条
+                if ("HOME".equals(name)) {
+                    homePanel.refreshAllProgressBars();
+                }
             }
 
         // ----------------------------------
         // 2） 返回首页的两种方式
         // ----------------------------------
-
-            // 重置整个界面状态并返回首页（暂未实现，留待后续拓展）
-            public void resetToHome() {
-                showPanel("HOME");
-            }
 
             // 简单返回首页
             public void returnToHome() {
@@ -125,6 +124,28 @@ public class MainFrame extends JFrame {
             // 1. 任务启动逻辑
         public void enterTask(int grade, TaskConfig task) {
             String taskId = task.getId();
+            // —— ① 检查是否已有完成记录？
+                Map<Integer, Map<String,Integer>> all = data.UserState.getProgressMap();
+                if (all.containsKey(grade) && all.get(grade).containsKey(taskId)) {
+                        int oldScore = all.get(grade).get(taskId);
+                        // 如果分数达到了该任务的满分（可选），或者任何非0分都算完成
+                                boolean isCompleted = oldScore > 0;
+                        if (isCompleted) {
+
+                                int option = JOptionPane.showConfirmDialog(
+                                            this,
+                                            "确认重做任务吗？\n原有进度（" + oldScore + " 分）将被清除。",
+                                            "重做确认",
+                                            JOptionPane.YES_NO_OPTION,
+                                            JOptionPane.WARNING_MESSAGE
+                                                );
+                                if (option != JOptionPane.YES_OPTION) {
+                                        return;  // 取消重做，不进入任务
+                                    }
+                               // 确认重做：清空旧分数并持久化
+                                        logic.ProgressTracker.saveProgress(grade, taskId, 0);
+                            }
+                    }
             JPanel taskPanel = createTaskPanel(taskId, grade);
 
             mainPanel.add(taskPanel, taskId);
